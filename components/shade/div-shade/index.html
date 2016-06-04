@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tab选项卡</title>
+    
+
+</head>
+<body>
+
+<div class="test">
+    <div class="mark">
+    </div>
+</div>
+   
+
+
+    <script src="../../../resource/jquery/jquery.js"></script>
+    <script type="text/javascript">
+        (function($){
+            $.fn.extend({
+               baseTab: function (option) {
+                var setting = {
+                   'position':0,
+                   'currentCssName':'current',
+                   'tabCard':'.tab-card',
+                   'tabCardBody':'.tab-card-body'
+               };
+               setting = $.extend(setting, option);
+               var _that = $(this);
+               var _currentPosition = setting.position;
+
+               _that.find(setting.tabCard).bind('click',function(){
+                _currentPosition = $(this).index();
+                _rendu();
+            });
+               var _rendu  = function(){
+
+                _that.find(setting.tabCard).removeClass(setting.currentCssName);
+                _that.find(setting.tabCardBody).removeClass(setting.currentCssName);
+                try{
+                   
+                        _that.find(setting.tabCard+':eq('+_currentPosition+')').addClass(setting.currentCssName);
+                        _that.find(setting.tabCardBody+':eq('+_currentPosition+')').addClass(setting.currentCssName);
+                }
+                catch(err){
+                    console.error(setting.tabCardBody+"["+_currentPosition+"] is not defined");
+                }
+            }
+            _rendu();
+        }
+    });
+        })(jQuery);
+
+/**
+*@example
+*/
+
+
+</script>
+
+</body>
+</html>
