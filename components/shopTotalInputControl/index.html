@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>商城商品购买数量增减</title>
+	<script type="text/javascript" src="../../resource/jquery/jquery.js"></script>
+<!-- 
+@title 商城商品购买数量增减
+@link http://www.cnblogs.com/jayshsoft/p/5149955.html
+@desc
+数量一定是数字
+点击增减按钮的时候要能自动加1或减1
+用户输入的内容如果是非数字，则不能输入(退格键除外)
+用户输入的值最小为1
+输入框离开焦点时要检查取值范围，确保输入框中必须是范围内的数字
+ -->	
+</head>
+<body>
+	<div class="bookNum">
+                    <a id="sub" href="javascript:void(0);">-</a>
+                    <input type="text" value="1" id="bookNum">
+                    <a id="add" href="javascript:void(0);">+</a>
+                    <a href="javascript:void(0);" id="addCart">加入购物车</a>
+                    <div class="clear"></div>
+	</div>
+	<script>
+	$("#bookNum").keypress(function(b) {
+        var keyCode = b.keyCode ? b.keyCode : b.charCode;
+        if (keyCode != 0 && (keyCode < 48 || keyCode > 57) && keyCode != 8 && keyCode != 37 && keyCode != 39) {
+            return false;
+        } else {
+            return true;
+        }
+    }).keyup(function(e) {
+        var keyCode = e.keyCode ? e.keyCode : e.charCode;
+        console.log(keyCode);
+        if (keyCode != 8) {
+            var numVal = parseInt($("#bookNum").val()) || 0;
+            numVal = numVal < 1 ? 1 : numVal;
+            $("#bookNum").val(numVal);
+        }
+    }).blur(function() {
+        var numVal = parseInt($("#bookNum").val()) || 0;
+        numVal = numVal < 1 ? 1 : numVal;
+        $("#bookNum").val(numVal);
+    });
+	    //增加
+	$("#add").click(function() {
+	    var num = parseInt($("#bookNum").val()) || 0;
+	    $("#bookNum").val(num + 1);
+	});
+
+	//减去
+	$("#sub").click(function() {
+	    var num = parseInt($("#bookNum").val()) || 0;
+	    num = num - 1;
+	    num = num < 1 ? 1 : num;
+	    $("#bookNum").val(num);
+	});
+    </script>
+</body>
+</html>

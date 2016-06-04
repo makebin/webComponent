@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tab选项卡</title>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+</head>
+<body>
+
+    <div id="tab">
+        <div class="tab-header">
+            <a href="javascript:;" class="tab-card">1</a>
+            <a href="javascript:;" class="tab-card">2</a>
+            <a href="javascript:;" class="tab-card">3</a>
+            <a href="javascript:;" class="tab-card">4</a>
+            <a href="javascript:;" class="tab-card">5</a>
+        </div>
+        <div class="tab-body">
+            <div class="tab-card-body">1</div>
+            <div class="tab-card-body">2</div>
+            <div class="tab-card-body">3</div>
+            <div class="tab-card-body">4</div>
+            <div class="tab-card-body">5</div>
+        </div>
+    </div>
+
+    <div id="tab2">
+        <div class="tab-header">
+            <a href="javascript:;" class="tab-card">1</a>
+            <a href="javascript:;" class="tab-card">2</a>
+            <a href="javascript:;" class="tab-card">3</a>
+            <a href="javascript:;" class="tab-card">4</a>
+            <a href="javascript:;" class="tab-card">5</a>
+        </div>
+        <div class="tab-body">
+            <div class="tab-card-body">1</div>
+            <div class="tab-card-body">2</div>
+            <div class="tab-card-body">3</div>
+            <div class="tab-card-body">4</div>
+            
+        </div>
+    </div>
+
+    <style>
+        .tab-card-body{
+            display: none;
+        }
+        .tab-card-body.current{
+            display:block;
+        }
+        .tab-card.current{
+            color: #f00;
+        }
+    </style>
+
+
+    <script src="../../resource/jquery/jquery.js"></script>
+    <script type="text/javascript">
+        (function($){
+            $.fn.extend({
+               baseTab: function (option) {
+                var setting = {
+                   'position':0,
+                   'currentCssName':'current',
+                   'tabCard':'.tab-card',
+                   'tabCardBody':'.tab-card-body'
+               };
+               setting = $.extend(setting, option);
+               var _that = $(this);
+               var _currentPosition = setting.position;
+
+               _that.find(setting.tabCard).bind('click',function(){
+                _currentPosition = $(this).index();
+                _rendu();
+            });
+               var _rendu  = function(){
+
+                _that.find(setting.tabCard).removeClass(setting.currentCssName);
+                _that.find(setting.tabCardBody).removeClass(setting.currentCssName);
+                try{
+                   
+                        _that.find(setting.tabCard+':eq('+_currentPosition+')').addClass(setting.currentCssName);
+                        _that.find(setting.tabCardBody+':eq('+_currentPosition+')').addClass(setting.currentCssName);
+                }
+                catch(err){
+                    console.error(setting.tabCardBody+"["+_currentPosition+"] is not defined");
+                }
+            }
+            _rendu();
+        }
+    });
+        })(jQuery);
+
+/**
+*@example
+*/
+$('#tab').baseTab({
+    "position":1
+});
+
+$('#tab2').baseTab({
+    "position":1
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>找回密码</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+</head>
+<body>
+<style>
+    .form-panel .form-control{
+        border: none;
+        box-shadow:none;
+    }
+    .form-panel{
+        margin-top: 50px;
+    }
+    .tips{
+        margin-top: 1em;
+    }
+    .showpassword{
+        position:absolute;
+        top: 50%;
+        right: 0.5em;
+        margin-top: -1.3em;
+        z-index: 999;
+    }
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12">
+            <ul class="list-group form-panel">
+                <li class="list-group-item">
+                    中国(+86)
+                </li>
+                <li class="list-group-item">
+                    <input type="text" placeholder="输入手机号码" class="form-control"/>
+                </li>
+                <li class="list-group-item">
+                    <input type="text" class="form-control" placeholder="输入账号名称"/>
+                </li>
+
+            </ul>
+            <div class="">
+                <button type="button" class="btn btn-success btn-block btn-lg">下一步</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="bootstrap/js/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<!--<script src="bootstrap/js/bootstrap.min.js"></script>-->
+<script>
+    $('.showpassword').bind('click', function () {
+        if($('#showPasswordBox').css('display') == 'none')
+        {
+            $('#showPasswordBox').val($('#password').val());
+            $('#password').hide();
+            $('#showPasswordBox').show();
+        }
+        else
+        {
+            $('#password').show();
+            $('#showPasswordBox').hide();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>产品分类筛选</title>
+    <script type="text/javascript" src="../../resource/jquery/jquery.js"></script>
+    <script type="text/javascript" src="js/griddle.js"></script>
+    <!--
+    @title 产品分类筛选
+    @link
+    @desc
+     -->
+</head>
+<body>
+
+<div class="griddlePanel" id="griddleBox" tms-data="{&quot;area&quot;:&quot;&quot;,&quot;price&quot;:&quot;100&quot;,&quot;type&quot;:&quot;1&quot;,&quot;work&quot;:&quot;1&quot;}">
+
+    <div class="param-area param-list" tms-data="{&quot;param&quot;:&quot;area&quot;}">
+        区域：
+        <a class="param" href="">不限</a>
+        <a class="param" href="#cy">朝阳</a>
+        <a class="param" href="#hd">海淀</a>
+        <a class="param" href="#ft">丰台</a>
+        <a class="param" href="#dc">东城</a>
+        <a class="param" href="#xc">西城</a>
+        <a class="param" href="#sjs">石景山</a>
+        <a class="param" href="#cq">昌平</a>
+        <a class="param" href="#dx">大兴</a>
+        <a class="param" href="#tz">通州</a>
+        <a class="param" href="#sy">顺义</a>
+        <a class="param" href="#fs">房山</a>
+        <a class="param" href="#my">密云</a>
+        <a class="param" href="#mtg">门头沟</a>
+        <a class="param" href="#hr">怀柔</a>
+        <a class="param" href="#yq"> 延庆</a>
+        <a class="param" href="#pg">平谷</a>
+        <a class="param" href="#yj">燕郊</a>
+        <a class="param" href="#bj">北京</a>
+        <a class="param" href="#zb">周边</a>
+    </div>
+    <div class="param-price param-list" tms-data="{&quot;param&quot;:&quot;price&quot;}">
+        价格:
+        <a class="param" href="">不限</a>
+        <a class="param" href="#100">100万以下</a>
+        <a class="param" href="#150">100-150万</a>
+        <a class="param" href="#200">150-200万</a>
+        <a class="param" href="#250">200-250万</a>
+        <a class="param" href="#300">250-300万</a>
+        <a class="param" href="#500">300-500万</a>
+        <a class="param" href="#800">500-800万</a>
+        <a class="param" href="#1000"> 800-1000万</a>
+        <a class="param" href="#2000">1000万以上</a>
+    </div>
+    <div class="param-type param-list" tms-data="{&quot;param&quot;:&quot;type&quot;}">
+        户型：
+        <a class="param" href="">不限</a>
+        <a class="param" href="#1">一居</a>
+        <a class="param" href="#2">二居</a>
+        <a class="param" href="#3">三居</a>
+        <a class="param" href="#4">四居</a>
+        <a class="param" href="#5">五居</a>
+        <a class="param" href="#6">五居以上</a>
+    </div>
+
+</div>
+<style>
+    *{
+        font-size: 12px;
+        color: #333;
+        text-decoration: none;
+
+    }
+    .current{
+        color: #f00;
+    }
+</style>
+<script>
+    $('#griddleBox').griddle({
+        selectedClassName:'current'
+    });
+</script>
+</body>
+</html>
