@@ -67,10 +67,11 @@
 		}
 
 		self.isIE = !!window.ActiveXObject;
-		self.isIE6 = self.isIE && !window.XMLHttpRequest;
-		self.isIE8 = self.isIE && !!document.documentMode;
-		self.isIE7 = self.isIE && !self.isIE6 && !self.isIE8;
+		self.isIE6 = self.isIE && navigator.userAgent.toLowerCase().indexOf("msie 6.0") > 0;
+		self.isIE8 = self.isIE && navigator.userAgent.toLowerCase().indexOf("msie 8.0") > 0;
+		self.isIE7 = self.isIE && !self.isIE6 && !self.isIE8 && navigator.userAgent.toLowerCase().indexOf("msie 7.0") > 0;
 		self.h5Support = window.applicationCache ? true : false;
+		self.protocol = document.location.protocol || '';
 
 		/**
 		 * 字符串替换
@@ -271,6 +272,20 @@
 		 * ajax请求打包处理
 		 * @param {Object} settings
 		 */
+		var protectRequest = {};
+		protectRequest.globalSettings = {
+			"beforeSend": undefined,
+			"complete": undefined,
+			"error": undefined,
+			"success": undefined
+		};
+		/**
+		 * ajax全局处理函数
+		 * @param {Object} settings 
+		 */
+		self.requestGlobalSettings = function (settings) {
+			$.extend(protectRequest.globalSettings, settings);
+		};
 		self.request = function (settings) {
 			defaultRequestSettings.context = defaultRequestSettings.context || document.body;
 			var config = {};
@@ -303,17 +318,25 @@
 					if (bindTargetsHandle) {
 						bindTargetsHandle.active();
 					}
+					if (typeof (protectRequest.globalSettings.beforeSend) == 'function') {
+						protectRequest.globalSettings.beforeSend(XMLHttpRequest);
+					}
 					if (typeof (config.beforeSend) == 'function') {
 						config.beforeSend(XMLHttpRequest);
 					}
+
 				},
 				"complete": function (XMLHttpRequest, code) {
 					if (bindTargetsHandle) {
 						bindTargetsHandle.finish();
 					}
+					if (typeof (protectRequest.globalSettings.beforeSend) == 'function') {
+						protectRequest.globalSettings.complete(XMLHttpRequest, code);
+					}
 					if (typeof (config.complete) == 'function') {
 						config.complete(XMLHttpRequest, code);
 					}
+
 				},
 				"error": function (XMLHttpRequest, code, err) {
 					// that for context
@@ -322,11 +345,18 @@
 					setTimeout(function () {
 						that.removeClass(defaultTargetStyle.DOM_HASH_REQUEST_ERROR);
 					}, defaultTargetStyle.DOM_REVIVE_TIME);
+					if (typeof (protectRequest.globalSettings.error) == 'function') {
+						protectRequest.globalSettings.error(XMLHttpRequest, code, error);
+					}
 					if (typeof (config.error) == 'function') {
 						config.error(XMLHttpRequest, code, error);
 					}
+
 				},
 				"success": function (XMLHttpRequest) {
+					if (typeof (protectRequest.globalSettings.success) == 'function') {
+						protectRequest.globalSettings.success(XMLHttpRequest);
+					}
 					if (typeof (config.success) == 'function') {
 						config.success(XMLHttpRequest);
 					}
@@ -416,11 +446,7 @@
 		};
 
 		self.echo = function () {
-
-			for (var i = 0; i < arguments.length; i++) {
-				console.log(arguments[0]);
-			}
-
+			console.log.apply(this, arguments);
 		};
 		/**
 		 * 判断一个元素是否在这个元素列表里
@@ -457,6 +483,41 @@
 				return output;
 			}
 		};
+
+		self.formatNumberSpanDomNan = function (num) {
+			num = "" + (~~num);
+			if (num.length == 1) {
+				return "<span class=\"g-num-lj g-nan\"></span > ";
+			} else {
+				num = num.split('');
+				var output = '';
+				for (var i = 0; i < num.length; i++) {
+					var item = num[i];
+					output += ("<span class=\"g-num-lj g-nan\"></span>");
+				}
+				return output;
+			}
+		};
+
+		self.formatNumberSpanRandom = function (num) {
+			num = "" + num;
+			var min = ~~('1' + Array(num.length).join("0"));
+			var max = ~~('9' + Array(num.length).join("9"));
+			num = Math.X5Random(min, max);
+			num = num + "";
+			if (num.length == 1) {
+				return "<span class=\"g-num-lj g" + num + "\"></span>";
+			} else {
+				num = num.split('');
+				var output = '';
+				for (var i = 0; i < num.length; i++) {
+					var item = num[i];
+					output += ("<span class=\"g-num-lj g" + item + "\"></span>");
+				}
+				return output;
+			}
+		};
+
 
 		/**
 		 * 内容渐显
@@ -741,7 +802,7 @@
 	};
 
 	self.unid = function (ext) {
-		return 'plug_' + (ext ? ext : '') + '_' + self.timeSecond() + parseInt((Math.random() * 1000));
+		return 'plug_' + (ext ? ext : '') + '_' + self.timeSecond() + parseInt((Math.random() * 1e6));
 	};
 
 	/**
@@ -751,14 +812,14 @@
 	self.TAB_HD_ITEM_CLASS = 'plug-tab-hd-item';
 	self.TAB_CONTENT_CLASS = 'plug-tab-content-item';
 	self.TAB_PLUG_CLASS = 'plug-tab-contain';
-	self.convertTable = function (content, cur) {
+	self.convertTable = function (content, cur, fn) {
 		var CURRENT_CLASS = 'cur';
 		var tab = content.find('.plug-tab-hd-item:eq(0)').parent().children('.plug-tab-hd-item');
 		var itemParent = content.find('.plug-tab-content-item:eq(0)').parent();
-		itemParent.children('.plug-tab-content-item').hide();
-		itemParent.children('.plug-tab-content-item:eq(0)').show();
+		// itemParent.children('.plug-tab-content-item').hide();
+		// itemParent.children('.plug-tab-content-item:eq(0)').show();
 		var isSelectCurrentStyle = cur || CURRENT_CLASS;
-		tab.eq(0).addClass(isSelectCurrentStyle);
+		// tab.eq(0).addClass(isSelectCurrentStyle);
 		tab.parent().on('click', '.' + self.TAB_HD_ITEM_CLASS, function () {
 			var that = $(this);
 			if (that.hasClass(isSelectCurrentStyle)) {
@@ -767,8 +828,13 @@
 			that.siblings().removeClass(isSelectCurrentStyle);
 			that.addClass(isSelectCurrentStyle);
 			var items = itemParent.children('.plug-tab-content-item').hide();
-			items.eq(that.index()).fadeIn("slow");
+			var itemUnit = items.eq(that.index());
+			itemUnit.fadeIn("slow");
+			if ($.isFunction(fn)) {
+				fn.apply(that, [itemUnit]);
+			}
 		});
+		tab.eq(0).trigger('click');
 	};
 
 
@@ -778,7 +844,8 @@
 				return false;
 			}
 		});
-		this.on("input propertychange change", function () {
+		var eventTarget = self.isIE ? "change" : "input propertychange change";
+		this.on(eventTarget, function () {
 			var that = $(this);
 			that.val(1 * that.val());
 		});
@@ -819,12 +886,12 @@
 					targetForData = $(targetForData)
 					selectListItem.unbind('click').click(function () {
 						var value = X5.$data($(this), 'count');
-						targetForData.val(value).trigger('change');
+						targetForData.val(value).trigger('change');;
 						X5.$setData(targetForData, 'select-result', value, true);
 						onOff.trigger('click');
 					});
 					if ($.isFunction(settings.after)) {
-						settings.after(selectListItem,targetForData);
+						settings.after(selectListItem, targetForData);
 					}
 				}
 			}
@@ -873,21 +940,31 @@
 	 * @param  {[type]}   targets  [description]
 	 * @return {[type]}            [description]
 	 */
-	self.lazyloadEnable = function (events, callback, targets) {
+	self.lazyloadEnable = function (events, callback, targets, even) {
 		targets = targets || '.lazyload-js';
 		var events = events.join(" ");
-		$(targets).one(events, function (e) {
-			var res = $(this).attr('lazyload-js-bind');
-			if (res) {
-				if ($.isFunction(callback)) {
-					res = self.formatLazyParam(res);
-					callback(res, e, $(this));
+		if (!even) {
+			$(targets).one(events, function (e) {
+				var res = $(this).attr('lazyload-js-bind');
+				if (res) {
+					if ($.isFunction(callback)) {
+						res = self.formatLazyParam(res);
+						callback(res, e, $(this));
+					}
 				}
-			}
-
-		})
+			})
+		} else {
+			$(targets).on(events, function (e) {
+				var res = $(this).attr('lazyload-js-bind');
+				if (res) {
+					if ($.isFunction(callback)) {
+						res = self.formatLazyParam(res);
+						callback(res, e, $(this));
+					}
+				}
+			});
+		}
 	};
-
 	/**
 	 * 本地缓存
 	 * [Storage description]
@@ -911,7 +988,7 @@
 				return false;
 			}
 			item = JSON.parse(item);
-			if (item.time + item.expires < self.timeSecond) {
+			if (item.time + item.expires < self.timeSecond()) {
 				return false;
 			}
 			if (item.type == 'string') {
@@ -1020,8 +1097,10 @@
 	var BORDER_STEP = 0.6;
 	self.registerAutoClose = function (target, callback, before, deep) {
 		if (target.length > 0) {
-			$('body').click(function (event) {
-
+			$('body').mouseup(function (event) {
+				if (!event.clientX && !event.clientY) {
+					return false;
+				}
 				if ($.isFunction(before)) {
 					if (before(target, event)) {
 						return true;
@@ -1077,7 +1156,8 @@
 	 * @return {[type]} [description]
 	 */
 	self.registerMaxLengthResidue = function (element, callback) {
-		element.on('input propertychange change', function (event) {
+		var eventTarget = self.isIE ? "change" : "input propertychange change";
+		element.on(eventTarget, function (event) {
 			var maxlength = element.attr('maxlength');
 			var targetViewElement = element.attr('residue-target-for');
 			targetViewElement = $(targetViewElement);
@@ -1091,6 +1171,7 @@
 			}
 
 		});
+
 	};
 
 
@@ -1224,6 +1305,175 @@
 		}
 	};
 
+	/**
+	 * 节流阀,时间范围内只执行一次
+	 * @param {Function} fn 
+	 * @param {Integer} delay 
+	 */
+	self.debounce = function (fn, delay) {
+		var timer = 0;
+		delay || (delay = 1e3)
+		return function () {
+			var content = this;
+			var args = arguments;
+			clearTimeout(timer);
+			timer = setTimeout(function () {
+				fn.apply(content, args);
+			}, delay);
+		}
+	};
+
+	/**
+	 * 节流阀.每隔多少时间执行一次
+	 * @param {Function} fn 
+	 * @param {Integer} threshhold 时间间隔
+	 */
+	self.throttle = function (fn, threshhold) {
+		var last = 0;
+		var timer = 0;
+		threshhold = threshhold || 250;
+		return function () {
+			var content = this;
+			var args = arguments;
+			var now = +new Date();
+			if (last && now < last + threshhold) {
+				clearTimeout(timer)
+				timer = setTimeout(function () {
+					last = now;
+					fn.apply(content, args);
+				}, threshhold);
+			} else {
+				last = now;
+				fn.apply(content, args);
+			}
+		}
+	};
+	/**
+	 * 获取对象实力化的名称
+	 * @param {ClassObject} obj 
+	 */
+	self.classPrototype = function (obj) {
+		if (obj == undefined) {
+			return typeof (undefined);
+		}
+		var constructor = obj.constructor.toString();
+		if (constructor.charAt(0) == '[') {
+			var arr = constructor.match(/\[\w+\s*(\w+)\]/);
+		} else {
+			var arr = constructor.match(/function\s*([\$|\w]+)/);
+		}
+		if (arr && arr.length == 2) {
+			return arr[1];
+		}
+		return false;
+	};
+
+	self.on = function (element, type, fn) {
+		if (element.addEventListener) {
+			element.addEventListener(type, fn, false);
+		} else if (element.attachEvent) {
+			element.attachEvent('on' + type, fn);
+		}
+	};
+
+	self.stop = function (event) {
+		(!!event.preventDefault) && event.preventDefault();
+		(!!event.stopPropagation) && event.stopPropagation();
+	};
+	/**
+	 * 去除字符的空白
+	 * @param {*} str 
+	 */
+	self.trimGlobal = function (str) {
+		return str.replace(/\s/g, "");
+	};
+	/* 
+		* formatMoney(s,type) 
+		* 功能：金额按千位逗号分割 
+		* 参数：s，需要格式化的金额数值. 
+		* 参数：type,判断格式化后的金额是否需要小数位. 
+		* 返回：返回格式化后的数值字符串. 
+		*/
+	self.formatMoney = function (s, type) {
+		if (/[^0-9\.]/.test(s))
+			return "0";
+		if (s == null || s == "")
+			return "0";
+		s = s.toString().replace(/^(\d*)$/, "$1.");
+		s = (s + "00").replace(/(\d*\.\d\d)\d*/, "$1");
+		s = s.replace(".", ",");
+		var re = /(\d)(\d{3},)/;
+		while (re.test(s))
+			s = s.replace(re, "$1,$2");
+		s = s.replace(/,(\d\d)$/, ".$1");
+		if (type == 0) {// 不带小数位(默认是有小数位)  
+			var a = s.split(".");
+			if (a[1] == "00") {
+				s = a[0];
+			}
+		}
+		return s;
+	};
+	/**
+	 * 秒转换为分钟
+	 * @param {*} second 
+	 */
+	self.secondToMinute = function (second_time) {
+		var time = self.prefixInteger(parseInt(second_time), 2);
+		if (parseInt(second_time) >= 60) {
+			var second = self.prefixInteger(parseInt(second_time) % 60, 2);
+			var min = self.prefixInteger(parseInt(second_time / 60), 2);
+			time = min + ":" + second;
+			if (min > 60) {
+				min = self.prefixInteger(parseInt(second_time / 60) % 60, 2);
+				var hour = self.prefixInteger(parseInt(parseInt(second_time / 60) / 60), 2);
+				time = hour + ":" + min + ":" + second;
+				if (hour > 24) {
+					hour = parseInt(parseInt(second_time / 60) / 60) % 24;
+					var day = self.prefixInteger(parseInt(parseInt(parseInt(second_time / 60) / 60) / 24), 2);
+					time = day + ":" + hour + ":" + min + ":" + second;
+				}
+			}
+		} else {
+			time = "00:" + time;
+		}
+		return time;
+	};
+	/**
+	 * 前置补0
+	 * @param {*} num 
+	 * @param {*} n 
+	 */
+	self.prefixInteger = function (num, n) {
+		return (Array(n).join(0) + num).slice(-n);
+	};
+	/**
+	 * 倒计时方法
+	 * @param {*} loop 
+	 * @param {*} dely 
+	 */
+	self.timeBoot = function (loop, dely) {
+		var _loop = isNaN(loop) ? 0 : ~~loop;
+		var timer = 0;
+		if (_loop == 0) {
+			return 0;
+		}
+		return function (callback) {
+			var ts = 0;
+			timer = setTimeout(function () {
+				ts++;
+				if ($.isFunction(callback)) {
+					callback(_loop - ts, ts);
+				}
+				if (_loop - ts < 1) {
+					clearTimeout(timer);
+				} else {
+					timer && clearTimeout(timer);
+					timer = setTimeout(arguments.callee, dely);
+				}
+			}, dely);
+		};
+	};
 	window.X5 = self;
 	//self.memoryDebug();
 })({}, typeof (jQuery) == 'undefined' ? {} : jQuery);
