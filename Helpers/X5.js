@@ -22,6 +22,7 @@
  *　　　　┗┻┛　┗┻┛+ + + +
  *@author keBin Ma
  */
+
 ; (function (self, $) {
 
 	try {
@@ -72,6 +73,8 @@
 		self.isIE7 = self.isIE && !self.isIE6 && !self.isIE8 && navigator.userAgent.toLowerCase().indexOf("msie 7.0") > 0;
 		self.h5Support = window.applicationCache ? true : false;
 		self.protocol = document.location.protocol || '';
+		self.isHttps = self.protocol.indexOf('https') > -1 ? true : false;
+		self.isMobile = _mAgent == 1 || _mAgent == 2 ? true : false;
 
 		/**
 		 * 字符串替换
@@ -276,7 +279,9 @@
 		protectRequest.globalSettings = {
 			"beforeSend": undefined,
 			"complete": undefined,
-			"error": undefined,
+			"error": function (XMLHttpRequest, code, err) {
+				console.warn(err);
+			},
 			"success": undefined
 		};
 		/**
@@ -304,8 +309,7 @@
 			if (config.bindTargets) {
 				bindTargetsHandle = self.bindTargetStyle(config.bindTargets);
 			}
-
-			$.ajax({
+			var settingsReal = {
 				"type": config.type,
 				"url": config.url,
 				"async": config.async,
@@ -346,10 +350,10 @@
 						that.removeClass(defaultTargetStyle.DOM_HASH_REQUEST_ERROR);
 					}, defaultTargetStyle.DOM_REVIVE_TIME);
 					if (typeof (protectRequest.globalSettings.error) == 'function') {
-						protectRequest.globalSettings.error(XMLHttpRequest, code, error);
+						protectRequest.globalSettings.error(XMLHttpRequest, code, err);
 					}
 					if (typeof (config.error) == 'function') {
-						config.error(XMLHttpRequest, code, error);
+						config.error(XMLHttpRequest, code, err);
 					}
 
 				},
@@ -361,7 +365,11 @@
 						config.success(XMLHttpRequest);
 					}
 				}
-			});
+			};
+			if (settings.support) {
+				$.extend(settingsReal, settings.support);
+			}
+			$.ajax(settingsReal);
 		}
 
 		/**
@@ -509,6 +517,21 @@
 				return "<span class=\"g-num-lj g" + num + "\"></span>";
 			} else {
 				num = num.split('');
+				var output = '';
+				for (var i = 0; i < num.length; i++) {
+					var item = num[i];
+					output += ("<span class=\"g-num-lj g" + item + "\"></span>");
+				}
+				return output;
+			}
+		};
+
+		self.formatNumberSpanBase = function (num) {
+			num = "" + num;
+			if (num.length == 1) {
+				return "<span class=\"g-num-lj g1\"></span>";
+			} else {
+				num = X5.prefixInteger(1, num.length);
 				var output = '';
 				for (var i = 0; i < num.length; i++) {
 					var item = num[i];
@@ -789,7 +812,22 @@
 			}
 
 		} catch (error) {
-			result = decodeURI(r);
+
+			try {
+				if (r.toLowerCase().indexOf('%22') > -1) {
+					var _r = decodeURI(r);
+				} else {
+					var _r = r;
+				}
+				result = self.evalReplace(_r)
+			}
+			catch (err) {
+				try {
+					result = decodeURI(r);
+				} catch (e) {
+					result = r;
+				}
+			}
 		}
 
 		return result;
@@ -801,8 +839,16 @@
 		return Math.round(new Date().getTime() / 1000);
 	};
 
-	self.unid = function (ext) {
-		return 'plug_' + (ext ? ext : '') + '_' + self.timeSecond() + parseInt((Math.random() * 1e6));
+
+	self.formatDate = function (sp) {
+		sp = sp || '/';
+		var now = new Date();
+		return now.getFullYear() + sp + now.getMonth() + sp + now.getDate();
+	};
+
+	self.unid = function (ext, pre) {
+		pre = pre ? pre : 'plug_';
+		return pre + (ext ? ext : '') + '_' + self.timeSecond() + parseInt((Math.random() * 1e6));
 	};
 
 	/**
@@ -812,17 +858,20 @@
 	self.TAB_HD_ITEM_CLASS = 'plug-tab-hd-item';
 	self.TAB_CONTENT_CLASS = 'plug-tab-content-item';
 	self.TAB_PLUG_CLASS = 'plug-tab-contain';
-	self.convertTable = function (content, cur, fn) {
+	self.DISABLE_CLASS = 'disable';
+	self.convertTable = function (content, cur, fn,disableClassName,curIndex) {
 		var CURRENT_CLASS = 'cur';
+		curIndex = curIndex || 0;
 		var tab = content.find('.plug-tab-hd-item:eq(0)').parent().children('.plug-tab-hd-item');
 		var itemParent = content.find('.plug-tab-content-item:eq(0)').parent();
 		// itemParent.children('.plug-tab-content-item').hide();
 		// itemParent.children('.plug-tab-content-item:eq(0)').show();
 		var isSelectCurrentStyle = cur || CURRENT_CLASS;
+		disableClassName = disableClassName || self.DISABLE_CLASS;
 		// tab.eq(0).addClass(isSelectCurrentStyle);
 		tab.parent().on('click', '.' + self.TAB_HD_ITEM_CLASS, function () {
 			var that = $(this);
-			if (that.hasClass(isSelectCurrentStyle)) {
+			if (that.hasClass(isSelectCurrentStyle) || that.hasClass(disableClassName)) {
 				return false;
 			}
 			that.siblings().removeClass(isSelectCurrentStyle);
@@ -831,28 +880,43 @@
 			var itemUnit = items.eq(that.index());
 			itemUnit.fadeIn("slow");
 			if ($.isFunction(fn)) {
-				fn.apply(that, [itemUnit]);
+				fn.apply(that, [itemUnit,that.index()]);
 			}
 		});
-		tab.eq(0).trigger('click');
+		tab.eq(curIndex).trigger('click');
 	};
 
 
-	self.bindNumberInput = function () {
+	self.bindNumberInput = function (callback) {
 		this.on('keydown', function (event) {
-			if (!((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8 || event.keyCode == 46 || event.keyCode == 37 || event.keyCode == 39)) {
+			if (event.shiftKey == 1 || !((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8 || event.keyCode == 46 || event.keyCode == 37 || event.keyCode == 39)) {
 				return false;
 			}
 		});
 		var eventTarget = self.isIE ? "change" : "input propertychange change";
-		this.on(eventTarget, function () {
+		var isCallback = $.isFunction(callback);
+		this.on(eventTarget, function (even) {
 			var that = $(this);
-			that.val(1 * that.val());
+			var currentValue = that.val();
+			if (currentValue !== 1 * currentValue) {
+				that.val(1 * currentValue);
+			}
+			isCallback ? callback.apply(this, arguments) : false;
 		});
 		this.on('focus', function () {
 			$(this).select();
 		});
 	};
+
+	self.change = function (callback) {
+		var eventTarget = self.isIE ? "change" : "input propertychange change";
+		this.on(eventTarget, function (even) {
+			$.isFunction(callback) && callback.apply(this, arguments);
+		});
+		this.on('focus', function () {
+			$(this).select();
+		});
+	}
 
 
 	/**
@@ -1155,19 +1219,22 @@
 	 * [registerMaxLengthResidue description]
 	 * @return {[type]} [description]
 	 */
-	self.registerMaxLengthResidue = function (element, callback) {
+	self.registerMaxLengthResidue = function (element, callback, isResidue) {
 		var eventTarget = self.isIE ? "change" : "input propertychange change";
 		element.on(eventTarget, function (event) {
 			var maxlength = element.attr('maxlength');
 			var targetViewElement = element.attr('residue-target-for');
 			targetViewElement = $(targetViewElement);
-			if (targetViewElement.length > 0) {
+			if (!isResidue && targetViewElement.length > 0) {
 				var residue = maxlength - element.val().length;
 				residue = residue > 0 ? residue : 0;
-				targetViewElement.html(residue);
-				if (jQuery.isFunction(callback)) {
-					callback(element, targetViewElement, event);
-				}
+			} else {
+				var residue = element.val().length;
+				residue = residue > maxlength ? maxlength : residue;
+			}
+			targetViewElement.html(residue);
+			if (jQuery.isFunction(callback)) {
+				callback(element, targetViewElement, event);
 			}
 
 		});
@@ -1271,8 +1338,8 @@
 			if (this.length < 1 || !$.isFunction(callback)) {
 				return false;
 			}
-			for (var i = 0; i < this.length; i++) {
-				outPut += callback(this[i], i);
+			for (var i = 0, item; item = this[i]; i++) {
+				outPut += callback(item, i);
 			}
 			return outPut;
 		}
@@ -1299,11 +1366,24 @@
 		var loop = 0;
 		for (var key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				outPut += callback(obj[key], loop);
+				outPut += callback(obj[key], loop, key);
 				loop++;
 			}
 		}
 	};
+
+
+	self.getObjFirst = function(obj)
+	{
+		var handle = undefined;
+		for (var key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				handle = obj[key];
+				break;
+			}
+		}
+		return handle;
+	}
 
 	/**
 	 * 节流阀,时间范围内只执行一次
@@ -1387,6 +1467,11 @@
 	self.trimGlobal = function (str) {
 		return str.replace(/\s/g, "");
 	};
+
+	//迭代器
+	self.rangeObj = function (obj, callback) {
+		typeof (obj.length) != 'undefined' ? obj.each(callback) : self.forEach(obj, callback);
+	};
 	/* 
 		* formatMoney(s,type) 
 		* 功能：金额按千位逗号分割 
@@ -1446,17 +1531,21 @@
 	 */
 	self.prefixInteger = function (num, n) {
 		return (Array(n).join(0) + num).slice(-n);
-	};
+	}
+
 	/**
-	 * 倒计时方法
-	 * @param {*} loop 
-	 * @param {*} dely 
-	 */
+ * 倒计时方法
+ * @param {*} loop 
+ * @param {*} dely 
+ */
 	self.timeBoot = function (loop, dely) {
 		var _loop = isNaN(loop) ? 0 : ~~loop;
+		dely = dely || 1e3;
 		var timer = 0;
 		if (_loop == 0) {
-			return 0;
+			return function (callback) {
+				$.isFunction(callback) && callback(0);
+			};
 		}
 		return function (callback) {
 			var ts = 0;
@@ -1472,8 +1561,289 @@
 					timer = setTimeout(arguments.callee, dely);
 				}
 			}, dely);
+			return function () {
+				timer && clearTimeout(timer);
+			}
 		};
 	};
+	/**
+	 * 模拟生成setInterval,更加精准
+	 * @param {*} callback 
+	 * @param {*} dely 
+	 */
+	self.setIntervalFunc = function (callback, dely) {
+		function _setIntervalFunc() {
+			this.timer = 0;
+			this.callback = callback;
+			this.dely = dely || 1e3;
+			this.isRun = false;
+		}
+		_setIntervalFunc.prototype.stop = _setIntervalFunc.prototype.clearTime = function () {
+			this.timer && clearTimeout(this.timer);
+			this.timer = 0;
+			this.isRun = false;
+		};
+		_setIntervalFunc.prototype.run = _setIntervalFunc.prototype.start = function () {
+			var that = this;
+			if(!this.isRun)
+			{
+				this.isRun = true;
+			}
+			this.timer = setTimeout(function () {
+				if ($.isFunction(that.callback)) {
+					that.callback.apply(that, [this]);
+				}
+				that.timer = setTimeout(arguments.callee, dely);
+			}, dely);
+		};
+		_setIntervalFunc.prototype.reStart = function(){
+			this.stop() && this.start();
+		}
+		return new _setIntervalFunc();
+	};
+
+	/**
+	 * 定义klass供其他地方使用
+	 */
+	var klass = {};
+
+	self.klass = function (classContent, className) {
+
+		$.isFunction(classContent) && (klass[className] = classContent);
+	};
+
+	self.useKlass = function (className) {
+		return klass[className] ? klass[className] : false;
+	};
+	/**
+	 * 模拟option
+	 */
+	self.simulationOption = function (content, callback, curClass, event) {
+		curClass = curClass || 'cur';
+		event = event || 'click';
+		content.on(event, function (event) {
+			content.removeClass(curClass);
+			$(this).addClass(curClass);
+			$.isFunction(callback) && callback.apply(this, arguments);
+		});
+	};
+
+	self.param = function (params) {
+		var paramString = [];
+		// var zhReg = /.*[\u4e00-\u9fa5]+.*$/;
+		self.forEach(params, function (item, loop, key) {
+			// zhReg.test(item) && (item = self.toUtf8(item));
+			paramString.push(key + "=" + item);
+		});
+		return paramString.join('&');
+	};
+
+	self.toUtf8 = function (str) {
+		var out, i, len, c;
+		out = "";
+		len = str.length;
+		for (i = 0; i < len; i++) {
+			c = str.charCodeAt(i);
+			if ((c >= 0x0001) && (c <= 0x007F)) {
+				out += str.charAt(i);
+			} else if (c > 0x07FF) {
+				out += String.fromCharCode(0xE0 | ((c >> 12) & 0x0F));
+				out += String.fromCharCode(0x80 | ((c >> 6) & 0x3F));
+				out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+			} else {
+				out += String.fromCharCode(0xC0 | ((c >> 6) & 0x1F));
+				out += String.fromCharCode(0x80 | ((c >> 0) & 0x3F));
+			}
+		}
+		return out;
+	}
+
+	self.evalReplace = function (fn) {
+		var Fn = Function;
+		return new Fn('return ' + fn)();
+	}
+	/**
+	 * call,apply性能优化，call>apply，所以优先使用call,再使用apply
+	 */
+	self.calls = function () {
+		var size = arguments.length;
+		var self = size < 2 ? window : arguments[1];
+		var fun = arguments[0];
+		if (typeof (fun) != 'function') {
+			return false;
+		}
+		switch (size) {
+			case 1:
+			case 2:
+				return fun.call(self);
+			case 3:
+				return fun.call(self, arguments[2]);
+			case 4:
+				return fun.call(self, arguments[2], arguments[3]);
+			case 5:
+				return fun.call(self, arguments[2], arguments[3], arguments[4]);
+			case 6:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5]);
+			case 7:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]);
+			case 8:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7]);
+			case 9:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7], arguments[8]);
+			case 10:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7], arguments[8], arguments[9]);
+			case 11:
+				return fun.call(self, arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7], arguments[8], arguments[9], arguments[10]);
+			default:
+				var args = Array.prototype.slice.apply(arguments);
+				args.splice(0, 2);
+				return fun.apply(self, args);
+		}
+	}
+
+	self.eq = function (value, diff) {
+		return value === diff || (value !== value && diff !== diff);
+	};
+
+	self.isNaN = function (value) {
+		return Number.isNaN(value);
+	};
+
+	self.objectKeys = function (obj) {
+		if (Object.keys) {
+			return Object.keys(obj);
+		} else {
+			var keys = [];
+			for (key in obj) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
+					key.push(key);
+				}
+			}
+			return keys;
+		}
+	}
+
+
+	/**
+	 * 抽屉功能
+	 * @param {*} settings 
+	 */
+	function drawer(settings) {
+		var defaultConfig = {
+			"wrap": null,
+			"prev": null,
+			"next": null,
+			"item": ".item",
+			"contain": null,
+			"disableClassName": "disable",
+			"showSize": 2,
+			"itemInnerWidth": 0
+		}
+		settings = $.extend(defaultConfig, settings);
+		return new drawer.prototype.init(settings);
+	};
+
+	drawer.fn = drawer.prototype = {
+		constructor: drawer,
+		init: function (settings) {
+			this.size = 0;
+			this.wrap = settings.wrap;
+			this.prev = settings.prev;
+			this.next = settings.next;
+			this.contain = settings.contain;
+			this.item = settings.item;
+			this.settings = settings;
+			var item = this.wrap.find(this.item);
+			this.size = item.length;
+			this.showSize = settings.showSize;
+			this.itemInnerWidth = settings.itemInnerWidth;
+			this.containWidth = 0;
+			if (item.length > 0 && this.itemInnerWidth < 1) {
+				var eq0Item = item.eq(0);
+				this.itemInnerWidth = eq0Item.innerWidth();
+				var ml = parseInt(eq0Item.css("marginLeft"), 10);
+				var mr = parseInt(eq0Item.css("marginRight"), 10);
+				this.itemInnerWidth = this.itemInnerWidth + ml + mr;
+			}
+			if (this.size > this.showSize) {
+				this.next.show()
+				this.prev.show().addClass(this.settings.disableClassName);
+			}
+			var self = this;
+			this.prev && this.prev.on('click', function (e) {
+				self.scroll.call(self, $(this), e, -1);
+			});
+
+			this.next && this.next.on('click', function (e) {
+				self.scroll.call(self, $(this), e, 1);
+			});
+			if (this.contain) {
+				this.containWidth = this.size * this.itemInnerWidth;
+				this.contain.width(this.containWidth);
+			}
+		}
+	}
+
+	drawer.fn.scroll = function (obj, e, step) {
+		if (obj.hasClass(this.settings.disableClassName) || this.wrap.length < 1) {
+			e && e.stopPropagation() && e.preventDefault();
+			return false;
+		}
+		var self = this;
+		var offsetWidth = step * this.itemInnerWidth;
+		this.wrap.stop().animate({
+			"scrollLeft": this.wrap[0].scrollLeft + offsetWidth
+		}, function () {
+			if (self.wrap[0].scrollLeft > 0) {
+				self.prev.removeClass(self.settings.disableClassName);
+			} else {
+				self.prev.addClass(self.settings.disableClassName);
+			}
+			if (self.containWidth - (self.wrap[0].scrollLeft + (self.showSize * self.itemInnerWidth)) < self.itemInnerWidth) {
+				self.next.addClass(self.settings.disableClassName);
+			} else {
+				self.next.removeClass(self.settings.disableClassName);
+			}
+		});
+	};
+
+	drawer.fn.resetPoint = function () {
+		this.scroll.call(this, this.prev, null, -this.size);
+	}
+
+	drawer.fn.reset = function () {
+		var item = this.wrap.find(this.item);
+		this.size = item.length;
+		if (!this.itemInnerWidth) {
+			if (item.length > 0 && this.itemInnerWidth < 1) {
+				var eq0Item = item.eq(0);
+				this.itemInnerWidth = eq0Item.innerWidth();
+				var ml = parseInt(eq0Item.css("marginLeft"), 10);
+				var mr = parseInt(eq0Item.css("marginRight"), 10);
+				this.itemInnerWidth = this.itemInnerWidth + ml + mr;
+			}
+		}
+		if (this.contain) {
+			this.containWidth = this.size * this.itemInnerWidth;
+			this.contain.width(this.containWidth);
+		}
+		if (this.size > this.showSize) {
+			this.next.show().removeClass(this.settings.disableClassName)
+			this.prev.show().addClass(this.settings.disableClassName);
+		}
+		this.resetPoint();
+	};
+
+
+
+	drawer.fn.init.prototype = drawer.fn;
+
+
+
+	self.drawer = drawer;
+
+
+
 	window.X5 = self;
 	//self.memoryDebug();
 })({}, typeof (jQuery) == 'undefined' ? {} : jQuery);
