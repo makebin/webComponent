@@ -37,7 +37,10 @@ $(function () {
     var Media = function () {
 
     };
-
+    // 
+    // 微信不自动全屏播放代码  直接添加页面中
+    // <video src="" controls="true" width="100%" preload="false" x-webkit-airplay="true" playsinline="" webkit-playsinline="" x5-playsinline="" id="media_1532315479" class="video-ele" style="display: none">您的浏览器不支持 VIDEO 标签。</video>
+    //
     Media.create = function (settings) {
         settings = settings || {};
         var elementDefaultAttributes = {
@@ -53,7 +56,10 @@ $(function () {
             "className": "",
             "type": Media.VIDEO_ELEMENT,
             "poster": '',
-            "isPlayerFullScreen":false
+            "isPlayerFullScreen": false, //是否进行全屏
+            "mediaEle": undefined, //直接提过相应的播放器ele,公众号要首先在页面上写上对象，然后再使用本组件，才不会自动全屏
+            "uuid": undefined, //自定义uuid
+            "bindCallback": undefined //时间绑定后的毁掉
         };
         var elementDefaultEventConfig = {
             "abort": undefined,//当发生中止事件时运行脚本
@@ -131,16 +137,34 @@ $(function () {
      * @see https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLMediaElement
      */
     function mediaElement(attributes, events) {
-        this.unid = "media_" + ~~new Date();
+        this.unid = attributes.uuid ? attributes.uuid : "media_" + ~~new Date();
         this.coreElement = undefined;
         this.mediaType = attributes.type;
         this.attributes = attributes;
         this.events = events;
         this.sourceElements = [];
-        this.mediaType == Media.AUDIO_ELEMENT ? createAudioElement.call(this) : createVideoElement.call(this);
+        this.mediaEleType = 0;
+        if (this.attributes.mediaEle) {
+            this.mediaEleType = this.attributes.mediaEle.nodeName.toUpperCase != 'VIDEO' ? Media.VIDEO_ELEMENT : Media.AUDIO_ELEMENT;
+        }
+        this.isCreateNew = this.mediaEleType == this.mediaType;
+        if (this.attributes.mediaEle && this.isCreateNew) {
+            this.coreElement = this.attributes.mediaEle;
+        } else {
+            this.mediaType == Media.AUDIO_ELEMENT ? createAudioElement.call(this) : createVideoElement.call(this);
+            if (this.attributes.content && this.coreElement) {
+                this.attributes.content.appendChild(this.coreElement);
+            }
+        }
         if (this.attributes.content && this.coreElement) {
-            this.attributes.content.appendChild(this.coreElement);
             this.bindElement();
+        }
+        if (this.attributes.src && this.attributes.mediaEle && this.isCreateNew) {
+            this.changeSrc(this.attributes.src);
+        }
+
+        if (typeof (this.attributes.bindCallback) == 'function') {
+            this.attributes.bindCallback.call(this);
         }
     }
 
@@ -160,15 +184,11 @@ $(function () {
         } else {
             this.coreElement.setAttribute('preload', this.attributes.preload || false);
         }
-        if(!this.isPlayerFullScreen)
-        {
-        	this.coreElement.setAttribute('x-webkit-airplay',true);
-        	this.coreElement.setAttribute('playsinline','playsinline');
-        	this.coreElement.setAttribute('webkit-playsinline',true);
-        	this.coreElement.setAttribute('x5-video-player-type','h5');
-        	this.coreElement.setAttribute('x5-playsinline','x5-playsinline');        	
-        }else{
-        	this.coreElement.setAttribute('x5-video-player-fullscreen',true);
+        if (!this.isPlayerFullScreen) {
+            this.coreElement.setAttribute('x-webkit-airplay', true);
+            this.coreElement.setAttribute('playsinline', '');
+            this.coreElement.setAttribute('webkit-playsinline', '');
+            this.coreElement.setAttribute('x5-playsinline', '');
         }
         this.coreElement.setAttribute('id', this.attributes.id || this.unid);
         this.coreElement.setAttribute('class', this.attributes.className || "video-ele");
