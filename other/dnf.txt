@@ -1,0 +1,1439 @@
+
+
+
+
+
+
+
+您好, xuchangasd 用户中心 | 退出
+
+下载按键精灵下载按键精灵   卖脚本卖脚本  会员充值会员充值  购卡开发者认证 
+
+
+
+按键精灵资源站
+
+
+    找图  句柄  插件
+ 全部 找教程 找资源 找脚本 
+
+
+
+
+首页
+
+
+  
+教程
+
+
+ 
+资源
+
+
+ 
+脚本
+
+
+ 
+源码库
+
+
+ 
+新闻
+
+
+ 
+卖脚本
+
+
+ 
+用户中心
+
+
+   
+加入收藏  返回官网
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+你的位置：按键精灵资源站 
+
+
+
+dnf 自动刷图源码，插件在论坛插件源码coolocr那里找
+
+发布: 2013-11-05 13:22:00 | 作者:  | 来源: 按键精灵资源站
+
+
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+ <SCRIPT LANGUAGE="javascript">
+ var km = new ActiveXObject("keymouse.hdkm");
+ var xdm = new ActiveXObject("xdm.coolocr");
+ xdm.lujing("d:/dnfhtml/font.txt");
+ xdm.wordwide(1);
+ xdm.secha(10);
+ xdm.yanse("ffffff");
+ xdm.loadpic("d:/dnfhtml/pic/");
+ var mylevel , lvl;
+ var myname, shuatu;
+ var port = 0;
+ var monstersw = 0;
+ var stage = 0;
+ var running = true;
+ var higheststage = 0;
+ var myDate = new Date();
+ var justnow = myDate.getFullYear() + "-" + (myDate.getMonth() + 1) + "-" + myDate.getDate() + " " + myDate.toLocaleTimeString();
+ var laststage = 0;
+ var lastposx = 0;
+ var lastposy = 0;
+ var stageloop = 0;
+ function main() {
+     var place, dnfwin;
+     var sougou, xux, xuy;
+     try {
+         if (port == 0) {
+             port = km.open("com1", 57600);
+         }
+         xdm.xieping(476, 600, ("端口状态" + port), "0000ff");
+         dnfwin = xdm.findwindows("地下城与勇士")
+         if (dnfwin > 0) {
+             xdm.movewin();
+             km.moveto(56, 555);
+             xdm.delay(200);
+             km.leftclick();
+             sougouinput();
+             level();
+             while (running) {
+                 i = 0;
+                 sougou = xdm.findbmp("验证码.bmp", 20, xux, xuy);
+                 if (sougou.length > 5) {
+                     xdm.xieping(476, 660, "发现验证码", "0000ff");
+                     xdm.mp3();
+                     monstersw = 0;
+                     while (i < 46) {
+                         xdm.delay(1000);
+                         i++
+                     }
+                   xdm.mp3close();
+                     monstersw = 1;
+                 }
+                 xdm.secha(30);
+                 xdm.yanse("9bc8e6");
+                 place = xdm.ocr(633, 5, 796, 19);
+                 if (place.indexOf("h") >= 0) {
+                     higheststage = 0;
+                     weak();
+                     citytomap();
+                 }
+                 if (place.indexOf("级") >= 0) {
+                     monstersw = 1;
+                     if (stage != 99) {
+                         if (stageloop < 5) {
+                             magic();
+                             jianwu();
+                         }
+                     }
+                     magic();
+                     tu();
+                     if (stage != 99) {
+                         if (stageloop < 5) {
+                             jianwu();
+                         }
+                     }
+                 }
+                 doquest();
+                 xdm.delay(600);
+             }
+         }
+         else {
+             login();
+         }
+     } catch (e) {
+         alert(e.message)
+     }
+     // km.close();
+ }
+ function citytomap() {
+     var i, j, k, xy, x, y;
+     km.keypress("n");
+     xdm.delay(300);
+     switch (lvl) {
+         case  60:
+         {
+             km.moveto(357, 457);
+             xdm.delay(300);
+             km.rightclick();
+             xdm.delay(8000);
+             km.keydown("right");
+             xdm.delay(2000);
+             km.keyup("right");
+             shuatu = "间";
+             break;
+         }
+         case  30:
+         {
+             km.moveto(608, 205);
+             xdm.delay(300);
+             km.rightclick();
+             xdm.delay(8000);
+             km.keydown("right");
+             xdm.delay(2000);
+             km.keyup("right");
+             shuatu = "殿外";
+             break;
+         }
+     }
+     xdm.delay(200);
+     km.keypress("escape");
+     i = 0;
+     while (i < 6) {
+         xy = xdm.findbmp("回城.bmp", 20, x, y);
+         if (xy.length > 5) {
+             i = 100;
+             j = 0;
+             while (j < 10) {
+                 xdm.yanse("93c5dd");
+                 xdm.secha(20);
+                 xy = xdm.ocr(724, 482, 791, 497);
+                 if (xy.indexOf(shuatu) > 0) {
+                     j = 10;
+                     k = 0;
+                     while (k < 10) {
+                         xy = xdm.findbmp("王者.bmp", 20, x, y);
+                         if (xy.length > 5) {
+                             km.keypress("space");
+                             xdm.delay(2500);
+                             monstersw = 1;
+                             waitforgoin();
+                             break;
+                         }
+                         else {
+                             km.keypress("right");
+                             xdm.delay(300);
+                         }
+                         k = k + 1;
+                     }
+                 }
+                 else {
+                     km.keypress("down");
+                     xdm.delay(500);
+                 }
+                 j = j + 1;
+             }
+         }
+         i = i + 1;
+         xdm.delay(700);
+     }
+ }
+ function doquest() {
+     var paytime, today;
+     var mydate = new Date();
+     today = mydate.getFullYear() + "-" + (mydate.getMonth() + 1) + "-" + mydate.getDate() + " " + mydate.toLocaleTimeString();
+     paytime = GetDateDiff(justnow, today, "minute");
+     if (paytime > 1) {
+         justnow = today
+         if (stage == laststage && stage != 99 && stage != 0) {
+             xdm.xieping(476, 680, "卡机" + stage, "00ff00");
+             switch (stage) {
+                 case  2:
+                 {
+                     km.keydown("up");
+                     xdm.delay(2000);
+                     km.keyup("up");
+                     km.keydown("right");
+                     xdm.delay("1000");
+                     km.keyup("right");
+                     break;
+                 }
+                 case  4:
+                 {
+                     km.keydown("up");
+                     xdm.delay(1000);
+                     km.keyup("up");
+                     km.keydown("right");
+                     xdm.delay("2000");
+                     km.keyup("right");
+                     km.keydown("down");
+                     xdm.delay("2000");
+                     km.keyup("down");
+                     break;
+                 }
+                 case  5:
+                 {
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                     km.keydown("down");
+                     xdm.delay("2000");
+                     km.keyup("down");
+                 }
+                 case 7:
+                 {
+                     km.keydown("down");
+                     xdm.delay(1000);
+                     km.keydown("left");
+                     xdm.delay(2000);
+                     km.keyup("left");
+                 }
+                 case -21:
+                 {
+                     km.keydown("left");
+                     xdm.delay(200);
+                     km.keydown("up");
+                     xdm.delay(2000);
+                     km.keyup("left");
+                 }
+             }
+         }
+         laststage = stage;
+         //   document.write("刚过" + paytime + "分钟。");
+     }
+ }
+function GetDateDiff(startTime, endTime, diffType) {
+     //将xxxx-xx-xx的时间格式，转换为 xxxx/xx/xx的格式
+    startTime = startTime.replace(/\-/g, "/");
+     endTime = endTime.replace(/\-/g, "/");
+     //将计算间隔类性字符转换为小写
+    diffType = diffType.toLowerCase();
+     var sTime = new Date(startTime);      //开始时间
+    var eTime = new Date(endTime);  //结束时间
+    //作为除数的数字
+    var divNum = 1;
+     switch (diffType) {
+         case "second":
+             divNum = 1000;
+             break;
+         case "minute":
+             divNum = 1000 * 60;
+             break;
+         case "hour":
+             divNum = 1000 * 3600;
+             break;
+         case "day":
+             divNum = 1000 * 3600 * 24;
+             break;
+         default:
+             break;
+     }
+     return parseInt((eTime.getTime() - sTime.getTime()) / parseInt(divNum));
+ }
+ function tu() {
+     switch (lvl) {
+         case  60:
+         {
+             tuyjxjz();
+             break;
+         }
+         case  30:
+         {
+             tusdww();
+             break;
+         }
+     }
+ }
+ function tusdww() { //神殿外围的图
+    var x, y, xy, human, pass, stagebmp, bmpxy, boss;
+     xy = xdm.findbmp("小人红.bmp", 40, x, y);
+     xdm.xieping(476, 640, xy, "00ff00");
+     human = xy.split(",");
+     x = parseInt(human[0]);
+     y = parseInt(human[1]);
+     if ((x == 693 && y == 92) || (x == 693 && y == 56)) {
+         stage = 1;
+     }
+     if (x == 711 && y == 56) {
+         stage = 2;
+     }
+     if (x == 711 && y == 92) {
+         stage = 3;
+     }
+     if (x == 747 && y == 56) {
+         stage = -21;
+     }
+     if (x == 711 && y == 74) {
+         stage = 4;
+     }
+     if (x == 729 && y == 74) {
+         stage = 5;
+     }
+     if (x == 747 && y == 92) {
+         stage = -61;
+     }
+     if (x == 747 && y == 74) {
+         stage = 6;
+     }
+     if (x == 765 && y == 74) {
+         stage = 7;
+     }
+     if (x == 765 && y == 92) {
+         stage = -71;
+     }
+     if (x == 765 && y == 56) {
+         stage = 8;
+     }
+     if (x == 783 && y == 74) {
+         stage = 9;
+     }
+     if ((x == 783 && y == 56) || (x == 783 && y == 92)) {
+         stage = 99;
+     }
+     if (stage > higheststage) {
+         higheststage = stage;
+     }
+     pass = xdm.findbmp("已过关.bmp", 20, x, y);
+     if (pass.length == 5) {
+         pass = xdm.findbmp("已过关神殿99.bmp", 20, x, y);
+     }
+     if ((pass.length > 5) || higheststage > stage) {
+         switch (stage) {
+             case  1 :
+             {
+                 stagebmp = xdm.findbmp("sdww1.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 600, y + 300);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 2:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 if (x > 0) {
+                     gotopoint(x - 43, y + 260);
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 else {
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+             case 3:
+             {
+                 stagebmp = xdm.findbmp("sdww2.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 if (x > 0) {
+                     gotopoint(x + 100, y + 260);
+                     km.keydown("up");
+                     xdm.delay(2000);
+                     km.keyup("up");
+                 }
+                 else {
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+             case  4:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 600, y + 260);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 5 :
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x+700, y + 250);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case  6:
+             {
+                 stagebmp = xdm.findbmp("sdww2.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 700, y + 250);
+                     km.keydown("right");
+                     xdm.delay(3000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case  -61:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x , y + 250);
+                     km.keydown("up");
+                     xdm.delay(1000);
+                     km.keyup("up");
+                 }
+                 break;
+             }
+             case 7:
+             {
+                 boss = xdm.findbmp("王.bmp", 20, x, y);
+                 if (boss == "780,88") {
+                     stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                     bmpxy = stagebmp.split(",");
+                     if (stagebmp.length > 5) {
+                         x = parseInt(bmpxy[0]);
+                         y = parseInt(bmpxy[1]);
+                         gotopoint(x + 600, y + 260);
+                         km.keydown("right");
+                         xdm.delay(2000);
+                         km.keyup("right");
+                     }
+                 } else {
+                     stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                     bmpxy = stagebmp.split(",");
+                     if (stagebmp.length > 5) {
+                         x = parseInt(bmpxy[0]);
+                         y = parseInt(bmpxy[1]);
+                         gotopoint(x, y + 260);
+                         km.keydown("up");
+                         xdm.delay(2000);
+                         km.keyup("up");
+                     }
+                 }
+                 break;
+             }
+             case -71:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x, y + 260);
+                     km.keydown("up");
+                     xdm.delay(2000);
+                     km.keyup("up");
+                 }
+                 break;
+             }
+             case 8:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 120, y + 180);
+                     gotopoint(x + 600, y + 280);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 9:
+             {
+                 stagebmp = xdm.findbmp("sdww3.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x, y + 260);
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+         }
+     }
+     else {
+         huaping();
+         if (stage == 4) {
+             stagebmp = xdm.findbmp("球.bmp", 30, x, y);
+             bmpxy = stagebmp.split(",");
+             if (stagebmp.length > 5) {
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 gotopoint(x, y);
+                 km.keypress("x");
+             }
+         }
+     }
+     if (stage == 99) {
+         tongguanfou();
+     }
+ }
+ function tuyjxjz() {
+     var x, y, xy, human, pass, stagebmp, bmpxy;
+     xy = xdm.findbmp("小人红.bmp", 40, x, y);
+     xdm.xieping(476, 640, xy, "00ff00");
+     human = xy.split(",");
+     x = parseInt(human[0]);
+     y = parseInt(human[1]);
+     if (x == 711 && y == 56) {
+         stage = 1;
+     }
+     if (x == 729 && y == 56) {
+         stage = 2;
+     }
+     if (x == 747 && y == 56) {
+         stage = -21;
+     }
+     if (x == 729 && y == 74) {
+         stage = 3;
+     }
+     if (x == 747 && y == 74) {
+         stage = 4;
+     }
+     if (x == 747 && y == 92) {
+         stage = 5;
+     }
+     if (x == 765 && y == 92) {
+         stage = 6;
+     }
+     if (x == 783 && y == 92) {
+         stage = 7;
+     }
+     if (x == 783 && y == 110) {
+         stage = 99;
+     }
+     if (stage > higheststage) {
+         higheststage = stage;
+         stageloop = 0;
+     }
+     pass = xdm.findbmp("已过关天界.bmp", 30, x, y);
+     //  alert(pass);
+     if ((pass.length > 5) || higheststage > stage) {
+         if (higheststage > stage) {
+             stageloop++;
+         }
+         switch (stage) {
+             case  1 :
+             {
+                 stagebmp = xdm.findbmp("yjxjz1.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 300, y + 350);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 2:
+             {
+                 stagebmp = xdm.findbmp("yjxjz2.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 if (x > 0) {
+                     gotopoint(x + 210, y + 370);
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 else {
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+             case  3:
+             {
+                 stagebmp = xdm.findbmp("yjxjz1.bmp", 20, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 300, y + 325);
+                     km.keydown("right");
+                     xdm.delay(1500);
+                     km.keydown("down");
+                     xdm.delay(1600);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 4 :
+             {
+                 stagebmp = xdm.findbmp("yjxjz1.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 if (x > 0) {
+                     gotopoint(x + 100, y + 400);
+                     km.keydown("down");
+                     xdm.delay(4000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+             case  5:
+             {
+                 stagebmp = xdm.findbmp("yjxjz5.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 300, y + 350);
+                     km.keydown("right");
+                     xdm.delay(3000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case 6:
+             {
+                 stagebmp = xdm.findbmp("yjxjz5.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x + 300, y + 350);
+                     km.keydown("right");
+                     xdm.delay(2000);
+                     km.keyup("right");
+                 }
+                 break;
+             }
+             case  7:
+             {
+                 stagebmp = xdm.findbmp("yjxjz7.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 if (stagebmp.length > 5) {
+                     x = parseInt(bmpxy[0]);
+                     y = parseInt(bmpxy[1]);
+                     gotopoint(x, y + 50);
+                     km.keydown("down");
+                     xdm.delay(1000);
+                     km.keyup("down");
+                     xdm.delay(300);
+                     km.keydown("right");
+                     xdm.delay(1000);
+                     km.keyup("right");
+                 }
+                 else {
+                     km.keydown("down");
+                     xdm.delay(2000);
+                     km.keyup("down");
+                 }
+                 break;
+             }
+             case -21:
+             {
+                 stagebmp = xdm.findbmp("yjxjz21.bmp", 30, x, y);
+                 bmpxy = stagebmp.split(",");
+                 x = parseInt(bmpxy[0]);
+                 y = parseInt(bmpxy[1]);
+                 if (x > 1) {
+                     gotopoint(x - 30, y + 250);
+                     km.keydown("left");
+                     xdm.delay(3000);
+                     km.keyup("left");
+                 }
+                 else {
+                     km.keydown("left");
+                     xdm.delay(2000);
+                     km.keyup("left");
+                 }
+                 break;
+             }
+         }
+     }
+     if (stage == 99) {
+         tongguanfou();
+     }
+ }
+ function tongguanfou() {
+     var tongguan;
+     higheststage = 0;
+     xdm.secha(30);
+     xdm.yanse("9bc8e6");
+     tongguan = xdm.ocr(814, 28, 927, 111);
+     if (tongguan.indexOf("通关") > 0) {
+         xdm.xieping(506, 660, "通关", "00ff00");
+         goodsmove();
+         xdm.delay(3000);
+         waitforgoin();
+     }
+ }
+ function goodsmove() {
+     var
+             backbmp, x, y, i;
+     xdm.delay(5000);
+     km.keypress("enter");
+     xdm.delay(500);
+     km.keypress("y");
+     xdm.delay(100);
+     km.keypress("d");
+     xdm.delay(100);
+     km.keypress("j");
+     xdm.delay(100);
+     km.keypress("s");
+     xdm.delay(400);
+     km.keypress("enter");
+     xdm.delay(500);
+     km.keypress("escape");
+     xdm.delay(200);
+     km.keypress("enter");
+     xdm.delay(300);
+     km.keypress("y");
+     xdm.delay(100);
+     km.keypress("d");
+     xdm.delay(100);
+     km.keypress("w");
+     xdm.delay(100);
+     km.keypress("p");
+     xdm.delay(300);
+     km.keypress("enter");
+     xdm.delay(200);
+     km.keypress("escape");
+     xdm.delay(300);
+     for (i = 0; i <= 18; i++) {
+         km.keypress("x");
+         xdm.delay(400);
+     }
+     sell();
+     xdm.delay(300);
+     backbmp = xdm.findbmp("返回.bmp", 20, x, y);
+     if (backbmp.length > 5) {
+         km.keypress("f10");
+         xdm.delay(300);
+         km.keypress("f10");
+     }
+ }
+ //noinspection FunctionWithInconsistentReturnsJS
+ function sell() {
+     var i, j, intx, inty, left, top, x, y, shoubmp, mabmp, bmpxy;
+     j = 0;
+     while (j < 60) {
+         mabmp = xdm.findbmp("大妈.bmp", 60, left, top);
+         if (mabmp.length > 5) {
+             bmpxy = mabmp.split(",");
+             left = parseInt(bmpxy[0]);
+             top = parseInt(bmpxy[1]);
+             km.moveto(left, top + 40);
+             xdm.delay(300);
+             km.leftclick();
+             xdm.delay(500);
+             km.moveto(left + 45, top + 70);
+             km.leftclick();
+             xdm.delay(1000);
+             j = 100;
+         }
+         shoubmp = xdm.findbmp("出售.bmp", 30, left, top);
+         if (shoubmp.length > 5) {
+             j = 100;
+             bmpxy = shoubmp.split(",");
+             left = parseInt(bmpxy[0]);
+             top = parseInt(bmpxy[1]);
+             if (mylevel<50){
+                 km.moveto(left + 170, top);  //修理装备
+            xdm.delay(300);
+             km.leftclick();
+             xdm.delay(800);
+             km.keypress("enter");
+             xdm.delay(200);}
+             km.moveto(left, top);
+             xdm.delay(300);
+             km.leftclick();
+             xdm.delay(100);
+             xdm.yanse('9bc8e6');
+             shoubmp = xdm.findstr(385, 356, 573, 487, '重', intx, inty);
+             if (shoubmp.length > 5) {
+                 bmpxy = shoubmp.split(",");
+                 intx = parseInt(bmpxy[0]);
+                 inty = parseInt(bmpxy[1]);
+                 km.moveto(intx, inty - 212);
+                 xdm.delay(200);
+                 km.leftclick();
+                 xdm.delay(300);
+                 km.moveto(intx + 206, inty);
+                 xdm.delay(400);
+                 km.leftclick();
+                 xdm.delay(300);
+                 i = 0;
+                 while (i < 8) {
+                     km.moveto(intx + i * 30, inty - 180);
+                     xdm.delay(400);
+                     km.leftclick();
+                     xdm.delay(500);
+                     mabmp = xdm.findbmp("取消.bmp", 60, x, y);
+                     if (mabmp.length > 5) {
+                         km.keypress("enter");
+                     }
+                     else {
+                         km.keypress("escape");
+                         i = 100;
+                         return 1;
+                     }
+                     i = i + 1;
+                 }
+                 km.keypress("escape");
+             }
+             else {
+                 return 0;
+             }
+         }
+         xdm.delay(1000);
+         j = j + 1;
+     }
+ }
+ function weak() {
+     var xux, xuy, bitsrc;
+     xux = 1;
+     bitsrc = "100,100";
+     while (bitsrc.length > 5) {
+         bitsrc = xdm.findbmp("虚弱.bmp", 30, xux, xuy);
+         if (bitsrc.length > 5) {
+         }
+         else {
+             break;
+         }
+         xdm.delay(10000);
+     }
+ }
+ function waitforgoin() {
+     var i;
+     for (i = 0; i < 15; i++) {
+         magic();
+         xdm.delay(700);
+     }
+ }
+ function jianwu() {
+     var
+             i, foundstr, foundstr1, foundstr2, foundstr3, start;
+     xdm.secha(20);
+     i = 0;
+     while (i < 4) {
+         xdm.yanse("ffffff");
+         foundstr1 = xdm.ocr(1, 191, 803, 560);
+         if (foundstr1.indexOf("G") > 0) {
+             dansejian("ffffff", 'G');
+         }
+         xdm.yanse("edd568");
+         foundstr2 = xdm.ocr(1, 191, 803, 560);
+         if ((foundstr2.length) >= 2) {
+             if (foundstr2.length > 4) {
+                 start = Math.round(foundstr2.length / 2);
+                 foundstr2 = foundstr2.substring(start, start + 1);
+             }
+             dansejian("edd568", foundstr2);
+         }
+         xdm.yanse("ff6bb3");
+         foundstr3 = xdm.ocr(1, 191, 803, 560);
+         if ((foundstr3.length) >= 2) {
+             foundstr3 = foundstr3.replace("吉", "");
+             foundstr3 = foundstr3.replace("格", "");
+             foundstr3 = foundstr3.replace("罗", "");
+             foundstr3 = foundstr3.replace("小", "");
+             foundstr3 = foundstr3.replace("人", "");
+             foundstr3 = foundstr3.replace("团", "");
+             foundstr3 = foundstr3.replace("员", "");
+             foundstr3 = foundstr3.replace("皮", "");
+             foundstr3 = foundstr3.replace("德", "");
+             foundstr3 = foundstr3.replace("布", "");
+             foundstr3 = foundstr3.replace("卡", "");
+             foundstr3 = foundstr3.replace("勒", "");
+             foundstr3 = foundstr3.replace("特", "");
+             foundstr3 = foundstr3.replace("士", "");
+             foundstr3 = foundstr3.replace("兵", "");
+             foundstr3 = foundstr3.replace("一", "");
+             foundstr3 = foundstr3.replace("波", "");
+             foundstr3 = foundstr3.replace("洛", "");
+             foundstr = foundstr3;
+             if (foundstr3.length > 4) {
+                 start = Math.round(foundstr3.length / 2);
+                 foundstr = foundstr3.substring(start, start + 1);
+             }
+             if ((foundstr3.length) > 1) {
+                 dansejian("ff6bb3", foundstr);
+             }
+         }
+         if (foundstr1.indexOf("G") == -1 && foundstr2.length == 0 && foundstr3.length == 0) {
+             break;
+             i = 5;
+         }
+         i = i + 1;
+     }
+ }
+ function dansejian(yanse, foundstr) {
+     var
+             tem, Lv, speedadjust, i, j, x, y, item, itemx, itemy, dirkey;
+     speedadjust = 90 / 100;
+     xdm.flush();
+     xdm.secha(15);
+     xdm.yanse('ffffff');
+     j = 0;
+     while (j < 8) {
+         tem = xdm.findstr(1, 191, 803, 560, 'Lv', x, y);
+         Lv = tem.split(",");
+         x = parseInt(Lv[0]);
+         y = parseInt(Lv[1]);
+         if (x > 0) {
+             x = x + 46;
+             y = y + 75;
+             break;
+         }
+         else {
+             if (j < 2) {
+                 dirkey = "right";
+             }
+             else if (j < 4) {
+                 dirkey = "left";
+             }
+             else if (j < 6) {
+                 if (stage != 99) {
+                     dirkey = "down";
+                 }
+             }
+             else {
+                 if (stage != 99) {
+                     dirkey = "up"
+                 }
+             }
+             km.keydown(dirkey);
+             xdm.delay(500);
+             km.keyup(dirkey);
+         }
+         xdm.delay(200);
+         j = j + 1;
+     }
+     xdm.secha(20);
+     xdm.yanse(yanse);
+     tem = xdm.findstr(1, 191, 803, 560, foundstr, itemx, itemy);
+     item = tem.split(",");
+     itemx = parseInt(item[0]);
+     itemy = parseInt(item[1]);
+     xdm.xieping(476, 680, yanse + foundstr + "itemy:" + itemy + "y:" + y, "0000ff");
+     if ((x > 0) && (itemx > 0)) {
+         if (itemx - x > 25) {
+             km.keypress("right");
+             xdm.delay(100);
+             km.keypress("right");
+             xdm.delay(100);
+             km.keydown("right");
+             xdm.delay(Math.round((itemx - x) * 4 * speedadjust));
+             //       km.keyup("right");
+         }
+         else if (itemx - x < -25) {
+             km.keypress("left");
+             xdm.delay(100);
+             km.keypress("left");
+             xdm.delay(100);
+             km.keydown("left");
+             xdm.delay(Math.round(Math.abs(itemx - x) * 4 * speedadjust));
+         }
+         if ((itemy - y) > 15) {
+             km.keydown("down");
+             xdm.delay((itemy - y) * 8);
+             km.keyup("down");
+         }
+         else if ((itemy - y) < -15) {
+             km.keydown("up");
+             xdm.delay(Math.abs(itemy - y) * 8);
+             km.keyup("up");
+         }
+         km.keyup("left");
+         xdm.delay(50);
+         km.keypress("x");
+         xdm.delay(300);
+         km.keypress("x");
+         //     i = 100;
+     }
+
+ }
+ function gotopoint(itemx, itemy) {
+     var
+             speedadjust, dirkey, i, j, x, y, Lv;
+     speedadjust = 90 / 100;
+
+     xdm.secha(15);
+     xdm.yanse('ffffff');
+     j = 0;
+     while (j < 8) {
+         tem = xdm.findstr(1, 171, 803, 460, 'Lv', x, y);
+         Lv = tem.split(",");
+         x = parseInt(Lv[0]);
+         y = parseInt(Lv[1]);
+         if (x > 0) {
+             x = x + 46;
+             y = y + 75;
+             break;
+         }
+         else {
+             if (j < 2) {
+                 dirkey = "right";
+             }
+             else if (j < 4) {
+                 dirkey = "left";
+             }
+             else if (j < 6) {
+                 if (stage != 99) {
+                     dirkey = "down";
+                 }
+             }
+             else {
+                 if (stage != 99) {
+                     dirkey = "up"
+                 }
+             }
+             km.keydown(dirkey);
+             xdm.delay(500);
+             km.keyup(dirkey);
+         }
+         xdm.delay(200);
+         j = j + 1;
+     }
+     if ((x > 0) && (itemx > 0)) {
+         if (lastposx == x && lastposy == y) {
+             if ((itemy - y) > 15) {
+                 km.keydown("down");
+                 xdm.delay((itemy - y) * 8);
+                 km.keyup("down");
+             }
+             else if ((itemy - y) < -15) {
+                 km.keydown("up");
+                 xdm.delay(Math.abs(itemy - y) * 8);
+                 km.keyup("up");
+             }
+         }
+         if (itemx - x > 25) {
+             km.keypress("right");
+             xdm.delay(100);
+             km.keypress("right");
+             xdm.delay(100);
+             km.keydown("right");
+             xdm.delay(Math.round((itemx - x) * 4 * speedadjust));
+         }
+         else if (itemx - x < -25) {
+             km.keypress("left");
+             xdm.delay(100);
+             km.keypress("left");
+             xdm.delay(100);
+             km.keydown("left");
+             xdm.delay(Math.round(Math.abs(itemx - x) * 4 * speedadjust));
+             //    km.keyup("left");
+         }
+         if (lastposx != x && lastposy != y) {
+             if ((itemy - y) > 15) {
+                 km.keydown("down");
+                 xdm.delay((itemy - y) * 8);
+                 km.keyup("down");
+             }
+             else if ((itemy - y) < -15) {
+                 km.keydown("up");
+                 xdm.delay(Math.abs(itemy - y) * 8);
+                 km.keyup("up");
+             }
+         }
+         km.keyup("all");
+     }
+     lastposx = x;
+     lastposy = y;
+ }
+ function magic() {
+     var twice;
+     if (monstersw == 1) {
+         for (twice = 0; twice < 2; twice++) {
+             var skill = Math.ceil(Math.random() * 11);
+             switch (skill) {
+                 case 1:
+                     km.keypress("a");
+                     break;
+                 case 2:
+                     km.keypress("s");
+                     break;
+                 case 3:
+                     km.keypress("d");
+                     break;
+                 case 4:
+                     km.keypress("f");
+                     break;
+                 case 5:
+                     km.keypress("g");
+                     break;
+                 case 6:
+                     km.keypress("h");
+                     break;
+                 case 7:
+                     km.keypress("q");
+                     break;
+                 case 8:
+                     km.keypress("w");
+                     break;
+                 case 9:
+                     km.keypress("e");
+                     break;
+                 case 10:
+                     km.keypress("r");
+                     break;
+                 case 11:
+                     km.keypress("t");
+                     break;
+             }
+         }
+     }
+ }
+
+ function sougouinput() {
+     var sougou, xux, xuy;
+     sougou = xdm.findbmp("搜狗.bmp", 20, xux, xuy);
+     if (sougou.length > 5) {
+         xdm.xieping(476, 660, "搜狗有安装", "0000ff");
+     }
+     else {
+         xdm.delay(600);
+         km.ctrldown("space");
+         xdm.delay(300);
+         km.keyup("space");
+         xdm.xieping(476, 660, "搜狗正在调出", "0000ff");
+         xdm.delay(6000);
+     }
+ }
+ function huaping() {
+     var sougou,huaxy, x, y;
+    sougou = xdm.findbmp("花瓶.bmp", 20, x, y);
+     if (sougou.length > 5) {
+         xdm.xieping(476, 680, "砸花瓶", "0000ff");
+      huaxy=sougou.split(",");
+         x=huaxy[0];
+         y=huaxy[1];
+         gotopoint(x+30,y+80);
+         km.keypress("x");
+         xdm.delay(200);
+         km.keypress("x");
+     }
+     sougou = xdm.findbmp("椅子.bmp", 20, x, y);
+     if (sougou.length > 5) {
+         xdm.xieping(476, 680, "椅子", "0000ff");
+         huaxy=sougou.split(",");
+         x=huaxy[0];
+         y=huaxy[1];
+         gotopoint(x,y);
+         km.keypress("x");
+         xdm.delay(200);
+         km.keypress("x");
+     }
+ }
+ function level() {
+     var tem, Lv, x, y;
+     km.moveto(295, 572);
+     xdm.delay(200);
+     km.leftclick();
+     xdm.delay(300);
+     xdm.yanse("ffffff");
+     xdm.secha(10);
+     tem = xdm.findstr(186, 240, 312, 254, 'Lv', x, y);
+     Lv = tem.split(",");
+     x = parseInt(Lv[0]);
+     y = parseInt(Lv[1]);
+     mylevel = xdm.ocr(x + 16, 240, x + 28, 254);
+     xdm.delay(200);
+     xdm.yanse("ffffff");
+     myname = xdm.ocr(x + 30, 241, x + 100, 253);
+     xdm.delay(200);
+     xdm.xieping(476, 620, mylevel + myname, "0000ff");
+     km.keypress("escape");
+     xdm.delay(200);
+     if (mylevel > 60) {
+         lvl = 60;
+     }
+     else if (mylevel > 50) {
+         lvl = 50;
+     }
+     else if (mylevel > 40) {
+         lvl = 40;
+     }
+     else if (mylevel > 30) {
+         lvl = 30;
+     }
+ }
+ function login() {
+     var qqfile, info, qq, logbmp, logxy, x, y;
+     var paytime, morning;
+     var mydate = new Date();
+     morning = mydate.getFullYear() + "-" + (mydate.getMonth() + 1) + "-" + mydate.getDate() + " " + mydate.toLocaleTimeString();
+     var ws = new ActiveXObject("Wscript.Shell");
+     var qqfile = ws.SpecialFolders("Desktop") + "/qq.txt";//'读取桌面路径
+    var line = 0;
+     var text = "";
+     var qqnum = "";
+     var password = "";
+     try {
+         //获取制卡程序配置文件存放位置
+        var ConfigFileSysObj = new ActiveXObject("Scripting.FileSystemObject"); //声明一个FileSystemObject的文件实例
+        if (!ConfigFileSysObj.FileExists(qqfile)) //判断所选文件是否存在
+        {
+             alert("文件不存在！请重新选择！");
+         } else {
+             var ConfigFileText = ConfigFileSysObj.OpenTextFile(qqfile, 1, false); //声明一个textStream对象用打开配置文件
+            while (!ConfigFileText.AtEndOfStream) //读取配置文件并替换IP和用户名密码
+            {
+                 info = ConfigFileText.ReadLine();
+                 qq = info.split(",");
+                 paytime = GetDateDiff(qq[4], morning, "hour");
+                 if ((paytime > 22 || qq[5] != "finish") && qqnum == "")//按照用户选择的制卡程序环境替换配置文件第八行的IP和用户名密码
+                {
+                     qqnum = qq[0];
+                     password = qq[1];
+                     qq[4] = morning;
+                     qq[5] = "farming";
+                     text = text + qq + "\r\n";
+                 } else {
+                     text = text + info + "\r\n";
+                 }
+                 line++;
+             }
+             ConfigFileText.Close();
+             /*将修改好的配置文件内容覆盖原文件*/
+             var NewConfigFileText = ConfigFileSysObj.CreateTextFile(qqfile, true);
+             NewConfigFileText.write(text);
+             NewConfigFileText.Close();
+             if (qqnum != "") {
+                 xdm.exec("D:/地下城与勇士/start/DNFchina.exe");
+                 line = 0;
+                 while (line < 30) {
+                     km.keypress("screen");
+                     xdm.delay(1000);
+                     logbmp = xdm.zhaotu("登.bmp", 20, x, y);
+                     if (logbmp.length > 5) {
+                         logxy = logbmp.split(",");
+                         x = logxy[0];
+                         y = logxy[1];
+                         km.moveto(x, y);
+                         xdm.delay(300);
+                         km.leftclick();
+                         break;
+                     }
+                     line++;
+                 }
+             }
+         }
+     } catch (err) {
+         var errTxt = "程序有错，请和开发人员联系！\r\n" + "错误描述： " + err.description;
+         alert(errTxt);
+     }
+ }
+ function save() {
+     var line, text, qqfile, info, qq;
+     var paytime, morning;
+     var mydate = new Date();
+     morning = mydate.getFullYear() + "-" + (mydate.getMonth() + 1) + "-" + mydate.getDate() + " " + mydate.toLocaleTimeString();
+     //   xdm.exec("D:/地下城与勇士/start/DNFchina.exe");
+     var ws = new ActiveXObject("Wscript.Shell");
+     var qqfile = ws.SpecialFolders("Desktop") + "/qq.txt";//'读取桌面路径
+    line = 0;
+     text = "";
+     try {
+         //获取制卡程序配置文件存放位置
+        var ConfigFileSysObj = new ActiveXObject("Scripting.FileSystemObject"); //声明一个FileSystemObject的文件实例
+        if (!ConfigFileSysObj.FileExists(qqfile)) //判断所选文件是否存在
+        {
+             alert("文件不存在！请重新选择！");
+         } else {
+             var qqnum = "";
+             var ConfigFileText = ConfigFileSysObj.OpenTextFile(qqfile, 1, false); //声明一个textStream对象用打开配置文件
+            while (!ConfigFileText.AtEndOfStream) //读取配置文件并替换IP和用户名密码
+            {
+                 info = ConfigFileText.ReadLine();
+                 qq = info.split(",");
+                 paytime = GetDateDiff(qq[4], morning, "hour");
+                 if ((paytime > 22 || qq[5] != "finish") && qqnum == "")//按照用户选择的制卡程序环境替换配置文件第八行的IP和用户名密码
+                {
+                     qqnum = qq[0];
+                     qq[4] = morning;
+                     qq[5] = "farming";
+                     text = text + qq + "\r\n";
+                 } else {
+                     text = text + info + "\r\n";
+                     ;
+                 }
+                 line++;
+             }
+             ConfigFileText.Close();
+             /*将修改好的配置文件内容覆盖原文件*/
+             var NewConfigFileText = ConfigFileSysObj.CreateTextFile(qqfile, true);
+             NewConfigFileText.write(text);
+             NewConfigFileText.Close();
+             //  alert("已经将qq文件保存");
+         }
+     } catch (err) {
+         var errTxt = "程序有错，请和开发人员联系！\r\n" + "错误描述： " + err.description;
+         alert(errTxt);
+     }
+ }
+ function test() {
+     km.open();
+     sell();
+ }
+ function stophd() {
+     running = false;
+     km.reset();
+ }
+ function killpro() {
+     km.reset();
+     km.close();
+     xdm.endprocess("iexplore.exe");
+ }
+ function continuehd() {
+     running = true;
+     main();
+ }
+ function tim() {
+     setTimeout("main()", 2000);
+     //setInterval("magic()", 1000);
+ }
+ </SCRIPT>
+ <input name="uu" type="button" id="uu" value="开始刷怪">
+ <input name="u" type="button" id="u" value="停止">
+ <input name="continu" type="button" id="contu" value="继续">
+ <input name="test" type="button" id="test" value="测试">
+ <input name="close" type="button" id="killpro" value="关掉程序">
+ <p><textarea rows="28" name="S1" cols="20"></textarea></p>
+
+
+
+
+
+  
+
+版权所有 2001–2016 按键精灵 闽B2-20130008-14  网站地图 闽公网安备 35010002000112号  51La 
+ 
+
+ 

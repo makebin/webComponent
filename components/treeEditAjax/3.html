@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./zTree_v3/css/zTreeStyle/zTreeStyle.css">
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+    <script src="./zTree_v3/js/jquery.ztree.core.js"></script>
+    <script src="./zTree_v3/js/jquery.ztree.exedit.js"></script>
+    <script src="./layer-v3.1.1/layer/layer.js"></script>
+    <title>Document</title>
+</head>
+<style>
+    .diy-content {
+        position: absolute;
+    }
+</style>
+
+<body>
+    <ul id="tree" class="ztree"></ul>
+</body>
+<script>
+    var zTreeObj;
+    var index = 0;
+    function addNode(obj) {
+        tid = $(obj).attr('data-value');
+        treeNode = zTreeObj.getNodeByTId(tid);
+        index = layer.prompt({ title: '分类名称', formType: 0 }, function (pass, index) {
+            $.post('1.php', {}, function (xml) {
+                var newNode = { name: pass };
+                zTreeObj.addNodes(treeNode, newNode);
+                layer.close(index);
+            }, 'json');
+        });
+
+
+    }
+    function removeNode(obj) {
+        tid = $(obj).attr('data-value');
+        treeNode = zTreeObj.getNodeByTId(tid);
+        index = layer.confirm('确定删除本分类', {
+            btn: ['确定', '取消'] //按钮
+        }, function () {
+            $.post('1.php', {}, function (xml) {
+                zTreeObj.removeNode(treeNode);
+                layer.close(index);
+            }, 'json');
+        }, function () {
+            layer.close(index);
+        });
+    }
+
+    function update(obj) {
+        tid = $(obj).attr('data-value');
+        treeNode = zTreeObj.getNodeByTId(tid);
+        if (treeNode) {
+            index = layer.prompt({ title: '分类名称', formType: 0 }, function (pass, index) {
+                $.post('1.php', {}, function (xml) {
+                    treeNode.name = pass;
+                    zTreeObj.updateNode(treeNode);
+                    layer.close(index);
+                }, 'json');
+            });
+        }
+    }
+
+
+    function addHoverDom(treeId, treeNode) {
+        if ($("#diyContent" + treeNode.tId).length > 0) { return false };
+        var aObj = $("#" + treeNode.tId + "_a");
+        diyContentHtml = "<span class=\"diy-content\" id=\"diyContent" + treeNode.tId + "\"><button data-value=\"" + treeNode.tId + "\" onClick=\"addNode(this)\">添加节点</button><button data-value=\"" + treeNode.tId + "\" onClick=\"update(this)\">修改节点</button><button data-value=\"" + treeNode.tId + "\" onClick=\"removeNode(this)\">删除节点</button></span>";
+        aObj.append(diyContentHtml);
+
+    }
+    function removeHoverDom(treeId, treeNode) {
+        $("#diyContent" + treeNode.tId).remove();
+    }
+    var setting = {
+        "callback": {
+            "beforeClick": function (treeId, treeNode, clickFlag) {
+
+            }
+        },
+        "view": {
+            addHoverDom: addHoverDom,
+            removeHoverDom: removeHoverDom
+        }
+    };
+    var zNodes = [
+        {
+            name: "test1", open: true, children: [
+                { name: "test1_1" }, { name: "test1_2" }]
+        },
+        {
+            name: "test2", open: true, children: [
+                { name: "test2_1" }, { name: "test2_2" }]
+        }
+    ];
+    $(function () {
+        zTreeObj = $.fn.zTree.init($('#tree'), setting, zNodes);
+    });
+</script>
+
+</html>
